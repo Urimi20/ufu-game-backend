@@ -5,10 +5,10 @@ const bcrypt = require("bcryptjs");
 
 const app = express();
 
-// KONFIGURIMI I CORS - Zgjidhja për problemin tënd
+// KONFIGURIMI I CORS - Kjo zgjidh gabimin tend
 app.use(
   cors({
-    origin: "*", // Lejon komunikimin me Netlify
+    origin: "*", // Lejon te gjitha faqet (si Netlify) te komunikojne me kete server
     methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
@@ -19,7 +19,7 @@ app.use(express.json());
 const SECRET_KEY = "neon_super_secret_2026";
 let users = [];
 
-// Krijimi i Adminit automatikisht
+// Krijimi i Adminit automatikisht sa here ndizet serveri
 (async () => {
   const hashedPass = await bcrypt.hash("admin123", 10);
   users.push({
@@ -30,11 +30,11 @@ let users = [];
     highScore: 0,
     isAdmin: true,
   });
-  console.log("✅ Serveri u ndez dhe CORS u konfigurua!");
+  console.log("✅ Serveri u ndez dhe CORS eshte i hapur!");
 })();
 
-// Route testimi
-app.get("/", (req, res) => res.send("Serveri është Live!"));
+// Route testimi per te pare nese serveri eshte online
+app.get("/", (req, res) => res.send("Serveri eshte Live dhe CORS eshte OK!"));
 
 // Login API
 app.post("/api/login", async (req, res) => {
@@ -81,7 +81,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Merr listen e perdoruesve
+// API per listen e perdoruesve
 app.get("/api/users", (req, res) => {
   res.json(
     users.map((u) => ({
@@ -93,15 +93,16 @@ app.get("/api/users", (req, res) => {
   );
 });
 
-// Fshirja (Admin)
+// API per fshirjen (Vetem Admini)
 app.delete("/api/users/:id", (req, res) => {
   const id = parseInt(req.params.id);
-  if (id === 1) return res.status(403).json({ error: "Admini nuk preket!" });
+  if (id === 1)
+    return res.status(403).json({ error: "Admini nuk mund te fshihet!" });
   users = users.filter((u) => u.id !== id);
   res.json({ success: true });
 });
 
-// Ruajtja e pikeve
+// API per perditesimin e pikeve
 app.post("/api/scores", (req, res) => {
   const { userId, score } = req.body;
   const user = users.find((u) => u.id === userId);
@@ -112,4 +113,6 @@ app.post("/api/scores", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5005;
-app.listen(PORT, "0.0.0.0", () => console.log(`Serveri ne porten ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`Serveri po punon ne porten ${PORT}`),
+);
